@@ -71,6 +71,7 @@ process rawReadCount {
 
   """
   module load HTSeq/0.6.1p1-foss-2016b-Python-2.7.12
+  module load Pysam/0.9.1.4-foss-2016b-Python-2.7.12
   mkdir ${sample_name}_raw_read_counts
 
   htseq-count \\
