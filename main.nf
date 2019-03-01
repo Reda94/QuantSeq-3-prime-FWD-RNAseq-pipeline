@@ -77,8 +77,9 @@ process rawReadCount {
   -s yes \\
   -f bam \\
   -r pos \\
+  -i gene_id \\
   $bam \\
-  - $gdc_gtf \\
+  $gdc_gtf \\
   > ./${sample_name}_raw_read_counts/${sample_name}raw_counts.txt
   """
 }
