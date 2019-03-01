@@ -76,7 +76,7 @@ process rawReadCount {
 
   htseq-count \\
   -m intersection-nonempty \\
-  -s yes \\
+  -s reverse \\
   -f bam \\
   -r pos \\
   -i gene_id \\
