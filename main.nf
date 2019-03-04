@@ -43,7 +43,7 @@ process starAlignment {
   --outFilterMultimapNmax 20 \\
   --alignSJoverhangMin 8 \\
   --alignSJDBoverhangMin 1 \\
-  --outFilterMismatchNmax 999 \\
+  --outFilterMismatchNmax 14 \\
   --outFilterMismatchNoverLmax 0.6 \\
   --alignIntronMin 20 \\
   --alignIntronMax 1000000 \\
