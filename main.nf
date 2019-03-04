@@ -28,7 +28,9 @@ process starAlignment {
   output:
   set sample_name, file("${sample_name}_star_alignment/*Aligned.sortedByCoord.out.bam") into star_alignment_results
   set sample_name, file("${sample_name}_star_alignment/*Aligned.sortedByCoord.out.bam"), file("${sample_name}_star_alignment/*Aligned.sortedByCoord.out.bam.bai") into rseqc_input
-
+  set sample_name, file("${sample_name}_star_alignment/*Log.final.out") into fb_log_final_out
+  set sample_name, file("${sample_name}_star_alignment/*.out") into fb_out
+  set sample_name, file("${sample_name}_star_alignment/*Log.out") into fb_log_out
   """
   module load STAR/2.5.2a-foss-2016b
   module load SAMtools/1.3.1-foss-2016b
@@ -43,7 +45,7 @@ process starAlignment {
   --outFilterMultimapNmax 20 \\
   --alignSJoverhangMin 8 \\
   --alignSJDBoverhangMin 1 \\
-  --outFilterMismatchNmax 14 \\
+  --outFilterMismatchNmax 999 \\
   --outFilterMismatchNoverLmax 0.6 \\
   --alignIntronMin 20 \\
   --alignIntronMax 1000000 \\
