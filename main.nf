@@ -52,6 +52,7 @@ process starAlignment {
   --alignMatesGapMax 1000000 \\
   --outSAMattributes NH HI NM MD \\
   --outSAMtype BAM SortedByCoordinate \\
+  --outSAMunmapped Within \\
   --outFileNamePrefix ./${sample_name}_star_alignment/${sample_name} \\
   --outSAMattrRGline ID:${sample_name} SM:${sample_name}
 
