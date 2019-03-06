@@ -105,7 +105,7 @@ process FPKM_TPM {
   FPKM_script.py $raw_counts ./${sample_name}_FPKM_TPM/${sample_name} $path_to_data
   """
 }
-
+/*
 process RNASeQC {
 
   publishDir "${output_dir}/${sample_name}"
@@ -122,4 +122,4 @@ process RNASeQC {
 
   java -jar \${EBROOTRNAMINSEQC}/RNA-SeQC_v1.1.8.jar -o ${sample_name}_QC -r $gdc_ref_gen -s \"${sample_name}|$bam|notes\" -t $rnaseqc_gtf
   """
-}
+}*/
