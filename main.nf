@@ -62,7 +62,7 @@ process stats_total_reads {
 
   a=\"${sample_name}\t\"
   b=\$((\$(zcat $fq|wc -l)/4))
-  c="$a$b"
+  c="\$a\$b"
   echo $c > ./${sample_name}_stats_total_reads/${sample_name}.txt
   """
 }
