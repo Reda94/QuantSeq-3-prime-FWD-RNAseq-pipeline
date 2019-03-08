@@ -3,6 +3,7 @@
 input_dir = params.in //input directory containing all fastq files
 input_data = "${input_dir}/*.fastq.gz"
 fastq_files = Channel.fromPath(input_data).map{file -> tuple(file.simpleName, file)}
+fastq_files_copy = Channel.fromPath(input_data).map{file -> tuple(file.simpleName, file)}
 
 output_dir = params.out //output directory containing results for all files
 threads = params.threads
@@ -52,7 +53,7 @@ process stats_total_reads {
   label 'stats'
 
   input:
-  set sample_name, file(fq) from fastq_files
+  set sample_name, file(fq) from fastq_files_copy
 
   output:
   set sample_name, file("${sample_name}_stats_total_reads/*.txt") into stats_total_reads_results
