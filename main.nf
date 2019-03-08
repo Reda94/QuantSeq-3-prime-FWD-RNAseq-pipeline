@@ -56,7 +56,7 @@ process stats_total_reads {
   set sample_name, file(fq) from fastq_files_copy
 
   output:
-  set sample_name, file("${sample_name}_stats_total_reads/*.txt") into stats_total_reads_results
+  file("${sample_name}_stats_total_reads/*.txt") into stats_total_reads_results
   """
   mkdir ${sample_name}_stats_total_reads
 
