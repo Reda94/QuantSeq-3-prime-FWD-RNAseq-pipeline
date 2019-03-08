@@ -11,12 +11,13 @@ gdc_ref_gen_idx_dir = params.ref_gen_idx_dir
 gdc_ref_gen = params.ref_gen
 gdc_gtf = params.gtf
 rnaseqc_gtf = params.rnaseqc_gtf
+refs_trimming = params.refs_trimming
 
 path_to_data = "\$HOME/.nextflow/assets/Reda94/GDC-RNAseq-pipeline/data/"
 
-//Star alignment:
+//Trimming
 
-process starAlignment {
+process trimmingReads {
 
   label 'parallel'
 
@@ -26,11 +27,63 @@ process starAlignment {
   set sample_name, file(fq) from fastq_files
 
   output:
+  set sample_name, file("${sample_name}_trimming/*.clean.fastq.gz") into trimming_results
+  """
+  module load BBMap/36.20-foss-2016b-Java-1.8.0_92
+  mkdir ${sample_name}_trimming
+
+  bbduk.sh \\
+  in=$fq \\
+  out=./${sample_name}_trimming/${sample_name}.clean.fastq.gz \\
+  ref=$refs_trimming \\
+  k=13 \\
+  ktrim=r \\
+  useshortkmers=t \\
+  mink=5 \\
+  qtrim=r \\
+  trimq=10 \\
+  minlength=20 \\
+  threads=$threads
+  """
+}
+
+process stats_total_reads {
+
+  label 'stats'
+
+  input:
+  set sample_name, file(fq) from fastq_files
+
+  output:
+  set sample_name, file("${sample_name}_stats_total_reads/*.txt") into stats_total_reads_results
+  """
+  mkdir ${sample_name}_stats_total_reads
+
+  echo -e \"${sample_name}\t\$(zcat $fq|wc -l)/4|bc\" > ${sample_name}_stats_total_reads/${sample_name}.txt
+  """
+}
+
+stats_total_reads_results.collectFile(name: "${output_dir}/total_reads.txt", newLine: true)
+
+/*
+//Star alignment:
+
+process starAlignment {
+
+  label 'parallel'
+
+  publishDir "${output_dir}/${sample_name}"
+
+  input:
+  set sample_name, file(fq_trimmed) from trimming_results
+
+  output:
   set sample_name, file("${sample_name}_star_alignment/*Aligned.sortedByCoord.out.bam") into star_alignment_results
   set sample_name, file("${sample_name}_star_alignment/*Aligned.sortedByCoord.out.bam"), file("${sample_name}_star_alignment/*Aligned.sortedByCoord.out.bam.bai") into rseqc_input
   set sample_name, file("${sample_name}_star_alignment/*Log.final.out") into fb_log_final_out
   set sample_name, file("${sample_name}_star_alignment/*.out") into fb_out
   set sample_name, file("${sample_name}_star_alignment/*Log.out") into fb_log_out
+
   """
   module load STAR/2.5.2a-foss-2016b
   module load SAMtools/1.3.1-foss-2016b
@@ -39,7 +92,7 @@ process starAlignment {
   STAR \\
   --runThreadN $threads \\
   --genomeDir $gdc_ref_gen_idx_dir \\
-  --readFilesIn $fq \\
+  --readFilesIn $fq_trimmed \\
   --readFilesCommand zcat \\
   --outFilterType BySJout \\
   --outFilterMultimapNmax 20 \\
@@ -105,7 +158,24 @@ process FPKM_TPM {
   FPKM_script.py $raw_counts ./${sample_name}_FPKM_TPM/${sample_name} $path_to_data
   """
 }
-/*
+
+process statistics {
+
+  publishDir "${output_dir}"
+
+  input:
+  set sample_name, file(fq) from fastq_files
+
+  output:
+  set sample_name, file("${sample_name}_FPKM_TPM/*.FPKM.txt"), file("${sample_name}_FPKM_TPM/*.TPM.txt") into FPKM_TPM_results
+
+  """
+
+  """
+
+}
+
+
 process RNASeQC {
 
   publishDir "${output_dir}/${sample_name}"
