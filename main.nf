@@ -48,28 +48,6 @@ process trimmingReads {
   """
 }
 
-process stats_total_reads {
-
-  label 'stats'
-
-  input:
-  set sample_name, file(fq) from fastq_files_copy
-
-  output:
-  file("${sample_name}_stats_total_reads/*.txt") into stats_total_reads_results
-  """
-  mkdir ${sample_name}_stats_total_reads
-
-  a=\"${sample_name}\t\"
-  b=\$((\$(zcat $fq|wc -l)/4))
-  c="\$a\$b"
-  echo \$c > ./${sample_name}_stats_total_reads/${sample_name}.txt
-  """
-}
-
-stats_total_reads_results.collectFile(name: "${output_dir}/total_reads.txt")
-
-/*
 //Star alignment:
 
 process starAlignment {
@@ -82,8 +60,7 @@ process starAlignment {
   set sample_name, file(fq_trimmed) from trimming_results
 
   output:
-  set sample_name, file("${sample_name}_star_alignment/*Aligned.sortedByCoord.out.bam") into star_alignment_results
-  set sample_name, file("${sample_name}_star_alignment/*Aligned.sortedByCoord.out.bam"), file("${sample_name}_star_alignment/*Aligned.sortedByCoord.out.bam.bai") into rseqc_input
+  set sample_name, file("${sample_name}_star_alignment/*Aligned.sortedByCoord.out.bam") into star_alignment_results, sar_for_trm_reads, sar_for_algnd_reads, sar_for_ualgnd_reads
   set sample_name, file("${sample_name}_star_alignment/*Log.final.out") into fb_log_final_out
   set sample_name, file("${sample_name}_star_alignment/*.out") into fb_out
   set sample_name, file("${sample_name}_star_alignment/*Log.out") into fb_log_out
@@ -154,6 +131,8 @@ process FPKM_TPM {
 
   output:
   set sample_name, file("${sample_name}_FPKM_TPM/*.FPKM.txt"), file("${sample_name}_FPKM_TPM/*.TPM.txt") into FPKM_TPM_results
+  file("${sample_name}_FPKM_TPM/*.FPKM.txt") into FPKM_results
+  file("${sample_name}_FPKM_TPM/*.TPM.txt") into TPM_results
 
   """
   module load Python/3.6.6-foss-2018b
@@ -163,37 +142,88 @@ process FPKM_TPM {
   """
 }
 
-process statistics {
+process stats_total_reads {
 
-  publishDir "${output_dir}"
+  label 'stats'
 
   input:
-  set sample_name, file(fq) from fastq_files
+  set sample_name, file(fq) from fastq_files_copy
 
   output:
-  set sample_name, file("${sample_name}_FPKM_TPM/*.FPKM.txt"), file("${sample_name}_FPKM_TPM/*.TPM.txt") into FPKM_TPM_results
-
+  file("${sample_name}_stats_total_reads/*.txt") into stats_total_reads_results
   """
+  mkdir ${sample_name}_stats_total_reads
 
+  a=\"${sample_name}\t\"
+  b=\$((\$(zcat $fq|wc -l)/4))
+  c="\$a\$b"
+  echo \$c > ./${sample_name}_stats_total_reads/${sample_name}.txt
   """
-
 }
 
+process stats_trm_reads {
 
-process RNASeQC {
-
-  publishDir "${output_dir}/${sample_name}"
+  label 'stats'
 
   input:
-  set sample_name, file(bam), file(bai) from rseqc_input
+  set sample_name, file(bam) from sar_for_trm_reads
 
   output:
-  set sample_name, file("${sample_name}_QC/*") into qc_results
-
+  file("${sample_name}_stats_trm_reads/*.txt") into stats_trm_reads_results
   """
-  module load RNA-SeQC/1.1.8-Java-1.7.0_80
-  mkdir ${sample_name}_QC
+  module load SAMtools/1.3.1-foss-2016b
+  mkdir ${sample_name}_stats_trm_reads
 
-  java -jar \${EBROOTRNAMINSEQC}/RNA-SeQC_v1.1.8.jar -o ${sample_name}_QC -r $gdc_ref_gen -s \"${sample_name}|$bam|notes\" -t $rnaseqc_gtf
+  a=\"${sample_name}\t\"
+  b=\$(samtools view -c -F 256 $bam)
+  c="\$a\$b"
+  echo \$c > ./${sample_name}_stats_trm_reads/${sample_name}.txt
   """
-}*/
+}
+
+process stats_algnd_reads {
+
+  label 'stats'
+
+  input:
+  set sample_name, file(bam) from sar_for_algnd_reads
+
+  output:
+  file("${sample_name}_stats_algnd_reads/*.txt") into stats_algnd_reads_results
+  """
+  module load SAMtools/1.3.1-foss-2016b
+  mkdir ${sample_name}_stats_algnd_reads
+
+  a=\"${sample_name}\t\"
+  b=\$(samtools view -c -F 260 $bam)
+  c="\$a\$b"
+  echo \$c > ./${sample_name}_stats_algnd_reads/${sample_name}.txt
+  """
+}
+
+process stats_ualgnd_reads {
+
+  label 'stats'
+
+  input:
+  set sample_name, file(bam) from sar_for_ualgnd_reads
+
+  output:
+  file("${sample_name}_stats_ualgnd_reads/*.txt") into stats_ualgnd_reads_results
+  """
+  module load SAMtools/1.3.1-foss-2016b
+  mkdir ${sample_name}_stats_ualgnd_reads
+
+  a=\"${sample_name}\t\"
+  b=\$(samtools view -c -q 255 -F 260 $bam)
+  c="\$a\$b"
+  echo \$c > ./${sample_name}_stats_ualgnd_reads/${sample_name}.txt
+  """
+}
+
+stats_total_reads_results.collectFile(name: "${output_dir}/total_reads.txt")
+stats_trm_reads_results.collectFile(name: "${output_dir}/trimmed_reads.txt")
+stats_algnd_reads_results.collectFile(name: "${output_dir}/algnd_reads.txt")
+stats_ualgnd_reads_results.collectFile(name: "${output_dir}/ualgnd_reads.txt")
+FPKM_results.collectFile(name: "${output_dir}/FPKM_results.txt")
+TPM_results.collectFile(name: "${output_dir}/TPM_results.txt")
