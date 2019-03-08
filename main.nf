@@ -60,7 +60,7 @@ process stats_total_reads {
   """
   mkdir ${sample_name}_stats_total_reads
 
-  echo -e \"${sample_name}\t\$(zcat $fq|wc -l)/4|bc\" > ${sample_name}_stats_total_reads/${sample_name}.txt
+  echo -e \"${sample_name}\t\$(zcat $fq|wc -l)/4|bc\" > ./${sample_name}_stats_total_reads/${sample_name}.txt
   """
 }
 
