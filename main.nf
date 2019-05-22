@@ -115,7 +115,6 @@ process rawReadCount {
   -m intersection-nonempty \\
   -s yes \\
   -f bam \\
-  -r pos \\
   $bam \\
   $gdc_gtf \\
   > ./${sample_name}_raw_read_counts/${sample_name}raw_counts.txt
